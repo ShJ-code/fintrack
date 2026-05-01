@@ -18,11 +18,11 @@ public class BillController {
 
     @GetMapping("/bills")
     public List<Bill> getBills(Integer userId) {
-        return billService.getBills(userId);
+        return billService.getBillsForUser(userId);
     }
 
     @PostMapping("/bills")
     public Bill insertBill(@RequestBody Bill bill) {
-        return null;
+        return billService.createBill(bill);
     }
 }
