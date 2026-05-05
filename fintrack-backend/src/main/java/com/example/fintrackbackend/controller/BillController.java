@@ -17,7 +17,7 @@ public class BillController {
     }
 
     @GetMapping("/bills")
-    public List<Bill> getBills(Integer userId) {
+    public List<Bill> getBills(@RequestParam Integer userId) {
         return billService.getBillsForUser(userId);
     }
 

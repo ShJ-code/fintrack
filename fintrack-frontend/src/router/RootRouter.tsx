@@ -5,7 +5,7 @@ import Login from "../components/Login.tsx";
 // import MainPage from "../components/MainPage";
 
 import RequireAuth from "./RequiredAuth.tsx";
-import Main from "../components/main.tsx";
+import Main from "../components/Main.tsx";
 
 const RootRouter: React.FC = () => {
   return (
