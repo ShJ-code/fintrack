@@ -2,7 +2,9 @@ package com.example.fintrackbackend.controller;
 
 import com.example.fintrackbackend.dto.LoginRequest;
 import com.example.fintrackbackend.dto.LoginResponse;
+import com.example.fintrackbackend.dto.RegisterRequest;
 import com.example.fintrackbackend.model.User;
+import com.example.fintrackbackend.security.JwtService;
 import com.example.fintrackbackend.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,12 +13,14 @@ import java.util.Optional;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:5173")
-public class LoginController {
+public class AuthController {
 
     private final UserService userService;
+    private final JwtService jwtService;
 
-    public LoginController(UserService userService) {
+    public AuthController(UserService userService, JwtService jwtService) {
         this.userService = userService;
+        this.jwtService = jwtService;
     }
 
     @PostMapping("/login")
@@ -27,5 +31,13 @@ public class LoginController {
         }
         User u = user.get();
         return ResponseEntity.ok(new LoginResponse(u.getId(), u.getUsername(), u.getEmail()));
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<LoginResponse> register(@RequestBody RegisterRequest req) {
+        User u = userService.register(req.getName(), req.getEmail(), req.getPassword());
+        String token = jwtService.issueFor(u.getId());
+        return ResponseEntity.status(201)
+                .body(new LoginResponse(u.getId(), u.getUsername(), u.getEmail(), token));
     }
 }
