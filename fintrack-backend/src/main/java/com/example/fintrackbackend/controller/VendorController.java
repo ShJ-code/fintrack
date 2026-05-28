@@ -2,6 +2,7 @@ package com.example.fintrackbackend.controller;
 
 import com.example.fintrackbackend.model.Vendor;
 import com.example.fintrackbackend.service.VendorService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,13 +18,18 @@ public class VendorController {
     }
 
     @GetMapping("/vendors")
-    public List<Vendor> getVendors(@RequestParam(required = false) Integer userId) {
-        return vendorService.getVendors(userId);
+    public ResponseEntity<List<Vendor>> getVendors(
+            @RequestAttribute(name = "userId", required = false) Integer userId) {
+        if (userId == null) return ResponseEntity.status(401).build();
+        return ResponseEntity.ok(vendorService.getVendors(userId));
     }
 
     // To be added later
     @PostMapping("/vendors")
-    public Vendor createVendor(@RequestBody Vendor vendor) {
+    public ResponseEntity<Vendor> createVendor(
+            @RequestAttribute(name = "userId", required = false) Integer userId,
+            @RequestBody Vendor vendor) {
+        if (userId == null) return ResponseEntity.status(401).build();
         return null;
     }
 }

@@ -2,6 +2,7 @@ package com.example.fintrackbackend.controller;
 
 import com.example.fintrackbackend.model.Bill;
 import com.example.fintrackbackend.service.BillService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,12 +18,17 @@ public class BillController {
     }
 
     @GetMapping("/bills")
-    public List<Bill> getBills(@RequestParam Integer userId) {
-        return billService.getBillsForUser(userId);
+    public ResponseEntity<List<Bill>> getBills(
+            @RequestAttribute(name = "userId", required = false) Integer userId) {
+        if (userId == null) return ResponseEntity.status(401).build();
+        return ResponseEntity.ok(billService.getBillsForUser(userId));
     }
 
     @PostMapping("/bills")
-    public Bill insertBill(@RequestBody Bill bill) {
-        return billService.createBill(bill);
+    public ResponseEntity<Bill> createBill(
+            @RequestAttribute(name = "userId", required = false) Integer userId,
+            @RequestBody Bill bill) {
+        if (userId == null) return ResponseEntity.status(401).build();
+        return ResponseEntity.ok(billService.createBill(bill));
     }
 }
