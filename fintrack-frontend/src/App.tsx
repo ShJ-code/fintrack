@@ -1,8 +1,13 @@
 import RootRouter from "./router/RootRouter";
-import './App.css'
+import { AuthProvider } from "./auth/AuthContext";
+import './App.css';
 
 function App() {
-  return <RootRouter />;
+  return (
+    <AuthProvider>
+      <RootRouter />
+    </AuthProvider>
+  );
 }
 
 export default App;
