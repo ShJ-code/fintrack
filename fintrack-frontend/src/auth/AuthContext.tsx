@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useReducer, type ReactNode } from "react";
 import { authReducer, initialAuthState } from "./reducer";
-import type { AuthState, AuthAction } from "./types";
+import { authStorage } from "./storage";
+import type { AuthState } from "./types";
 import type { User } from "../api/types";
 
 interface AuthContextValue {
@@ -11,33 +12,18 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-const STORAGE_KEY = "fintrack.auth";
-
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [state, dispatch] = useReducer(authReducer, initialAuthState);
 
     useEffect(() => {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-            try {
-                const parsed = JSON.parse(raw) as { user: User; token: string };
-                dispatch({ type: "LOAD", payload: parsed });
-                return;
-            } catch {
-                localStorage.removeItem(STORAGE_KEY);
-            }
-        }
-        dispatch({ type: "LOAD", payload: null });
+        dispatch({ type: "LOAD", payload: authStorage.load() });
     }, []);
 
     useEffect(() => {
         if (state.status === "authenticated" && state.user && state.token) {
-            localStorage.setItem(
-                STORAGE_KEY,
-                JSON.stringify({ user: state.user, token: state.token }),
-            );
+            authStorage.save({ user: state.user, token: state.token });
         } else if (state.status === "anonymous") {
-            localStorage.removeItem(STORAGE_KEY);
+            authStorage.clear();
         }
     }, [state]);
 
