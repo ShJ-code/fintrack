@@ -1,72 +1,42 @@
-import axios from "axios";
 import { login as loginApi } from "../api/auth";
-
 import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-
-interface LocationState {
-  from?: Location;
-}
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
-  // javascript arrow function closure
-  const handleEmail = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(event.target.value);
-  };
-
-  const handlePassword = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(event.target.value);
-  };
-
-  const handleLogin = async () => {
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSubmitting(true);
     try {
-      // http protocal
-      // get, post, delete, patch
-      // axios helps us handle this syncouesly
-      const user = await loginApi(email, password);
-      localStorage.setItem("user", JSON.stringify(user));
+      const { user, token } = await loginApi(email, password);
+      login(user, token);
       navigate("/main");
-    //   const res = await axios.post("http://localhost:8080/login", {
-    //     email,
-    //     password,
-    //   });
-    //   if (res.data.id) {
-    //     localStorage.setItem("user", JSON.stringify(res.data));
-    //     navigate("/main");
-    //   }
-    //   console.log(res.data);
-    } catch (err) {
-      alert(err);
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      setError(status === 401 ? "Invalid email or password" : "Login failed");
+    } finally {
+      setSubmitting(false);
     }
   };
-
+  
   return (
     <div style={{ maxWidth: 400, margin: "0 auto", paddingTop: 50 }}>
       <h1>Login</h1>
-      <div>
-        Email:
-        <input
-          type="email"
-          value={email}
-          onChange={handleEmail}
-          placeholder="Enter email"
-        />
-      </div>
-      <div>
-        Password:
-        <input
-          type="password"
-          value={password}
-          onChange={handlePassword}
-          placeholder="Enter password"
-        />
-      </div>
-      <button onClick={handleLogin}>Login</button>
+      <form onSubmit={onSubmit}>
+        <div>Email: <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></div>
+        <div>Password: <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required /></div>
+        {error && <div style={{ color: "red" }}>{error}</div>}
+        <button type="submit" disabled={submitting}>{submitting ? "Logging in ..." : "Login"}</button>
+      </form>
+      <p>No account? <Link to="/register">Register</Link></p>
     </div>
   );
 };
