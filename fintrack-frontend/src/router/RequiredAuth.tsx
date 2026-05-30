@@ -1,15 +1,15 @@
-import React from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate } from "react-router-dom";
+import type { ReactNode } from "react";
+import { useAuth } from "../auth/AuthContext";
 
-interface RequireAuthProps {
-  children: any;
+interface Props {
+  children: ReactNode;
 }
 
-const RequireAuth: React.FC<RequireAuthProps> = ({children}) => {
-  const login = localStorage.getItem("user");
-  if (!login) {
-    return <Navigate to="/login" />;
-  }
+const RequireAuth = ({ children }: Props) => {
+  const { state } = useAuth();
+  if (state.status === "loading") return null;
+  if (state.status === "anonymous") return <Navigate to="/login" replace />;
   return <>{children}</>;
 };
 

@@ -1,35 +1,23 @@
-import React from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import Login from "../components/Login.tsx";
-// import MainPage from "../components/MainPage";
-
+import Register from "../components/Register";
 import RequireAuth from "./RequiredAuth.tsx";
 import Main from "../components/Main.tsx";
 
 const RootRouter: React.FC = () => {
   return (
-    <Router>
+    <BrowserRouter>
       <Routes>
-        <Route
-          path="/login"
-          element={
-            <Login />
-          }
-        />
-      </Routes>
-      <Routes>
+        <Route path="/" element={<Navigate to="/main" replace />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route
           path="/main"
-          element={
-            <RequireAuth>
-              {" "}
-              <Main />{" "}
-            </RequireAuth>
-          }
+          element={<RequireAuth><Main /></RequireAuth>}
         />
+        <Route path="*" element={<Navigate to="/main" replace />} />
       </Routes>
-    </Router>
+    </BrowserRouter>
   );
 };
 
