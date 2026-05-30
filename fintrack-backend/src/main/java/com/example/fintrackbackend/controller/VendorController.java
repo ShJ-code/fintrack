@@ -1,5 +1,6 @@
 package com.example.fintrackbackend.controller;
 
+import com.example.fintrackbackend.security.CurrentUserId;
 import com.example.fintrackbackend.model.Vendor;
 import com.example.fintrackbackend.service.VendorService;
 import org.springframework.http.ResponseEntity;
@@ -18,10 +19,8 @@ public class VendorController {
     }
 
     @GetMapping("/vendors")
-    public ResponseEntity<List<Vendor>> getVendors(
-            @RequestAttribute(name = "userId", required = false) Integer userId) {
-        if (userId == null) return ResponseEntity.status(401).build();
-        return ResponseEntity.ok(vendorService.getVendors(userId));
+    public List<Vendor> getVendors(@CurrentUserId Integer userId) {
+        return vendorService.getVendors(userId);
     }
 
     // To be added later

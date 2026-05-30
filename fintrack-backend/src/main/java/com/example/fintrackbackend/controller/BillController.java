@@ -1,6 +1,7 @@
 package com.example.fintrackbackend.controller;
 
 import com.example.fintrackbackend.model.Bill;
+import com.example.fintrackbackend.security.CurrentUserId;
 import com.example.fintrackbackend.service.BillService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,10 +19,8 @@ public class BillController {
     }
 
     @GetMapping("/bills")
-    public ResponseEntity<List<Bill>> getBills(
-            @RequestAttribute(name = "userId", required = false) Integer userId) {
-        if (userId == null) return ResponseEntity.status(401).build();
-        return ResponseEntity.ok(billService.getBillsForUser(userId));
+    public List<Bill> getBills(@CurrentUserId Integer userId) {
+        return billService.getBillsForUser(userId);
     }
 
     @PostMapping("/bills")
