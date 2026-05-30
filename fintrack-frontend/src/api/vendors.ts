@@ -1,7 +1,7 @@
 import { api } from "./client";
 import type { Vendor } from "./types";
 
-export async function getVendors(userId: number): Promise<Vendor[]> {
-    const res = await api.get<Vendor[]>("/vendors", { params: { userId } });
+export async function getVendors(): Promise<Vendor[]> {
+    const res = await api.get<Vendor[]>("/vendors");
     return res.data;
 }
