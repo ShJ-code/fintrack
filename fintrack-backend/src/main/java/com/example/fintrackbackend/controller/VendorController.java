@@ -25,7 +25,6 @@ public class VendorController {
         return vendorService.getVendors(userId);
     }
 
-    // To be added later
     @PostMapping
     public ResponseEntity<Vendor> create(
             @CurrentUserId Integer userId,

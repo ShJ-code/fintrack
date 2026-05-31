@@ -1,14 +1,17 @@
 package com.example.fintrackbackend.repository;
 
 import com.example.fintrackbackend.model.Bill;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class BillRepository {
@@ -29,6 +32,18 @@ public class BillRepository {
         return jdbc.query(sql, new BillRowMapper(), userId);
     }
 
+    public Optional<Bill> findByIdForUser(int billId, int userId) {
+        String sql = "SELECT b.bill_id, b.vendor_id, v.company_name, b.amount, " +
+                "b.due_date, b.status, b.created_at " +
+                "FROM Bill b JOIN Vendor v ON v.vendor_id = b.vendor_id " +
+                "WHERE b.bill_id = ? AND v.user_id = ?";
+        try {
+            return Optional.ofNullable(jdbc.queryForObject(sql, new BillRowMapper(), billId, userId));
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
     public int insert(Bill bill) {
         String sql = "INSERT INTO Bill (vendor_id, amount, due_date, status) " +
                 "VALUES (?, ?, ?, ?)";
@@ -42,5 +57,20 @@ public class BillRepository {
             return ps;
         }, keyHolder);
         return keyHolder.getKey().intValue();
+    }
+
+    public int update(int billId, int userId, BigDecimal amount, java.sql.Date dueDate, String status) {
+        String sql = "UPDATE Bill b " +
+                "JOIN Vendor v ON b.vendor_id = v.vendor_id " +
+                "SET b.amount = ?, b.due_date = ?, b.status = ?, " +
+                "WHERE b.bill_id = ? AND v.user_id = ?";
+        return jdbc.update(sql, amount, dueDate, status, billId, userId);
+    }
+
+    public int delete(int billId, int userId) {
+        String sql = "DELETE b FROM Bill b " +
+                "JOIN Vendor v ON v.vendor_id = b.vendor_id " +
+                "WHERE b.bill_id = ? AND v.user_id = ?";
+        return jdbc.update(sql, billId, userId);
     }
 }

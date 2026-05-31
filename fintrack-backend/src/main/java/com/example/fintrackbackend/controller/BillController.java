@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@RequestMapping("/bills")
 @CrossOrigin(origins = "http://localhost:5173")
 public class BillController {
 
@@ -18,16 +19,28 @@ public class BillController {
         this.billService = billService;
     }
 
-    @GetMapping("/bills")
-    public List<Bill> getBills(@CurrentUserId Integer userId) {
+    @GetMapping
+    public List<Bill> list(@CurrentUserId Integer userId) {
         return billService.getBillsForUser(userId);
     }
 
-    @PostMapping("/bills")
+    @PostMapping
     public ResponseEntity<Bill> createBill(
-            @RequestAttribute(name = "userId", required = false) Integer userId,
+            @CurrentUserId Integer userId,
             @RequestBody Bill bill) {
-        if (userId == null) return ResponseEntity.status(401).build();
-        return ResponseEntity.ok(billService.createBill(bill));
+        return ResponseEntity.status(201).body(billService.createBill(userId, bill));
+    }
+
+    @PutMapping("/{billId}")
+    public Bill update(@CurrentUserId Integer userId,
+                       @PathVariable int billId,
+                       @RequestBody Bill bill) {
+        return billService.updateBill(billId, userId, bill);
+    }
+
+    @DeleteMapping("/{billId}")
+    public ResponseEntity<Void> delete(@CurrentUserId Integer userId, @PathVariable int billId) {
+        billService.deleteBill(billId, userId);
+        return ResponseEntity.noContent().build();
     }
 }
