@@ -24,7 +24,7 @@ public class BillRepository {
 
     public List<Bill> findByUserId(int userId) {
         String sql = "SELECT b.bill_id, b.vendor_id, v.company_name, " +
-                "       b.amount, b.due_date, b.status, b.created_at " +
+                "b.amount, b.due_date, b.status, b.created_at " +
                 "FROM Bill b " +
                 "JOIN Vendor v ON v.vendor_id = b.vendor_id " +
                 "WHERE v.user_id = ? " +
