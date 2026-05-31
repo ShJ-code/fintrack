@@ -21,24 +21,24 @@ public class CustomerService {
     }
 
     public Customer create(int userId, String companyName, String email) {
-        validateName(companyName, email);
-        int newId = customerRepository.insert(userId, companyName.trim(), email);
-        return new Customer(newId, userId, companyName.trim(), email);
+        validate(companyName, email);
+        int newId = customerRepository.insert(userId, companyName.trim(), email.trim().toLowerCase());
+        return new Customer(newId, userId, companyName.trim(), email.trim().toLowerCase());
     }
 
     public Customer update(int customerId, int userId, String companyName, String email) {
-        validateName(companyName, email);
-        int rows = customerRepository.update(customerId, userId, companyName.trim(), email);
+        validate(companyName, email);
+        int rows = customerRepository.update(customerId, userId, companyName.trim(), email.trim().toLowerCase());
         if (rows == 0) throw new NoSuchElementException("Customer not found");
-        return new Customer(customerId, userId, companyName.trim(), email);
+        return new Customer(customerId, userId, companyName.trim(), email.trim().toLowerCase());
     }
 
     public void delete(int customerId, int userId) {
         int rows = customerRepository.delete(customerId, userId);
-        if (rows == 0) throw new NoSuchElementException(("Customer not found"));
+        if (rows == 0) throw new NoSuchElementException("Customer not found");
     }
 
-    private void validateName(String companyName, String email) {
+    private void validate(String companyName, String email) {
         if (companyName == null || companyName.isBlank()) {
             throw new IllegalArgumentException("Company name is required");
         }

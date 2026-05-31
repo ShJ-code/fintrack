@@ -56,7 +56,6 @@ public class BillService {
         if (rows == 0) throw new NoSuchElementException("Bill not found");
 
         bill.setBillId(billId);
-        if (bill.getStatus() == null || bill.getStatus().isBlank()) bill.setStatus("unpaid");
         return bill;
     }
 

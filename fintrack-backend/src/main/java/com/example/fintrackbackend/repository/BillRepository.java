@@ -22,7 +22,7 @@ public class BillRepository {
         this.jdbc = jdbc;
     }
 
-    public List<Bill> findByUserId(Integer userId) {
+    public List<Bill> findByUserId(int userId) {
         String sql = "SELECT b.bill_id, b.vendor_id, v.company_name, " +
                 "       b.amount, b.due_date, b.status, b.created_at " +
                 "FROM Bill b " +
@@ -62,7 +62,7 @@ public class BillRepository {
     public int update(int billId, int userId, BigDecimal amount, java.sql.Date dueDate, String status) {
         String sql = "UPDATE Bill b " +
                 "JOIN Vendor v ON b.vendor_id = v.vendor_id " +
-                "SET b.amount = ?, b.due_date = ?, b.status = ?, " +
+                "SET b.amount = ?, b.due_date = ?, b.status = ? " +
                 "WHERE b.bill_id = ? AND v.user_id = ?";
         return jdbc.update(sql, amount, dueDate, status, billId, userId);
     }
