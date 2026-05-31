@@ -18,7 +18,7 @@ const Login: React.FC = () => {
     try {
       const { user, token } = await loginApi(email, password);
       login(user, token);
-      navigate("/main");
+      navigate("/bills");
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } })?.response?.status;
       setError(status === 401 ? "Invalid email or password" : "Login failed");
