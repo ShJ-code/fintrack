@@ -73,4 +73,10 @@ public class BillRepository {
                 "WHERE b.bill_id = ? AND v.user_id = ?";
         return jdbc.update(sql, billId, userId);
     }
+
+    public int markPaid(int billId, int userId) {
+        String sql = "UPDATE Bill b JOIN Vendor v ON b.vendor_id = v.vendor_id " +
+                "SET b.status = 'paid' WHERE b.bill_id = ? AND v.user_id = ?";
+        return jdbc.update(sql, billId, userId);
+    }
 }

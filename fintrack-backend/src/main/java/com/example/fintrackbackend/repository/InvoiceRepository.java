@@ -72,4 +72,10 @@ public class InvoiceRepository {
                 "WHERE i.invoice_id = ? AND c.user_id = ?";
         return jdbc.update(sql, invoiceId, userId);
     }
+
+    public int markPaid(int invoiceId, int userId) {
+        String sql = "UPDATE Invoice i JOIN Customer c ON i.custoer_id = c.customer_id " +
+                "SET i.status = 'paid' WHERE i.invoice_id = ? AND c.user_id = ?";
+        return jdbc.update(sql, invoiceId, userId);
+    }
 }
