@@ -27,3 +27,14 @@ export interface Customer {
     companyName: string;
     email?: string;
 }
+
+export interface Invoice {
+    invoiceId: number;
+    customerId: number;
+    customerName?: string;
+    customerEmail?: string;
+    amount: number;
+    dueDate: string;
+    status: string;
+    createdAt?: string;
+}

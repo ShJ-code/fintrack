@@ -1,37 +1,36 @@
 import { useEffect, useState } from "react";
-import { createBill, deleteBill, getBills, updateBill } from "../api/bills";
-import { getVendors } from "../api/vendors";
-import type { Bill, Vendor } from "../api/types";
+import { createInvoice, deleteInvoice, getInvoices, updateInvoice } from "../api/invoices";
+import { getCustomers } from "../api/customers";
+import type { Invoice, Customer } from "../api/types";
 import { DataTable, type Column } from "./DataTable";
 import { Modal } from "./Modal";
-import { pay } from "../api/payments";
 
-const newDraft = (): Bill => ({
-  billId: 0,
-  vendorId: 0,
+const newDraft = (): Invoice => ({
+  invoiceId: 0,
+  customerId: 0,
   amount: 0,
   dueDate: "",
   status: "unpaid",
 });
 
-const BillPage = () => {
-  const [bills, setBills] = useState<Bill[]>([]);
-  const [vendors, setVendors] = useState<Vendor[]>([]);
+const InvoicesPage = () => {
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
-  const [vendorsLoading, setVendorsLoading] = useState(false);
+  const [customersLoading, setCustomersLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [editing, setEditing] = useState<Bill | "new" | null>(null);
-  const [draft, setDraft] = useState<Bill>(newDraft);
+  const [editing, setEditing] = useState<Invoice | "new" | null>(null);
+  const [draft, setDraft] = useState<Invoice>(newDraft);
   const [saving, setSaving] = useState(false);
 
   const reload = async () => {
     setLoading(true);
     try {
-      setBills(await getBills());
+      setInvoices(await getInvoices());
       setError(null);
     } catch {
-      setError("Failed to load bills");
+      setError("Failed to load invoices");
     } finally {
       setLoading(false);
     }
@@ -40,15 +39,15 @@ const BillPage = () => {
   useEffect(() => {
     let cancelled = false;
 
-    getBills()
-      .then((nextBills) => {
+    getInvoices()
+      .then((nextInvoices) => {
         if (cancelled) return;
-        setBills(nextBills);
+        setInvoices(nextInvoices);
         setError(null);
       })
       .catch(() => {
         if (cancelled) return;
-        setError("Failed to load bills");
+        setError("Failed to load invoices");
       })
       .finally(() => {
         if (cancelled) return;
@@ -63,38 +62,38 @@ const BillPage = () => {
 
     let cancelled = false;
 
-    getVendors()
-      .then((nextVendors) => {
+    getCustomers()
+      .then((nextCustomers) => {
         if (cancelled) return;
-        setVendors(nextVendors);
+        setCustomers(nextCustomers);
         setDraft((current) => (
-          current.vendorId === 0 && nextVendors.length > 0
-            ? { ...current, vendorId: nextVendors[0].vendorId }
+          current.customerId === 0 && nextCustomers.length > 0
+            ? { ...current, customerId: nextCustomers[0].customerId }
             : current
         ));
       })
       .catch(() => {
         if (cancelled) return;
-        alert("Failed to load vendors");
+        alert("Failed to load customers");
       })
       .finally(() => {
         if (cancelled) return;
-        setVendorsLoading(false);
+        setCustomersLoading(false);
       });
 
     return () => { cancelled = true; };
   }, [editing]);
 
   const openCreate = () => {
-    setVendorsLoading(true);
+    setCustomersLoading(true);
     setEditing("new");
     setDraft(newDraft());
   };
 
-  const openEdit = (bill: Bill) => {
-    setVendorsLoading(true);
-    setEditing(bill);
-    setDraft(bill);
+  const openEdit = (invoice: Invoice) => {
+    setCustomersLoading(true);
+    setEditing(invoice);
+    setDraft(invoice);
   };
 
   const closeModal = () => {
@@ -103,13 +102,13 @@ const BillPage = () => {
   };
 
   const onSave = async () => {
-    if (draft.vendorId === 0 || draft.amount <= 0 || draft.dueDate.length === 0) return;
+    if (draft.customerId === 0 || draft.amount <= 0 || draft.dueDate.length === 0) return;
     setSaving(true);
     try {
       if (editing === "new") {
-        await createBill(draft);
+        await createInvoice(draft);
       } else if (editing) {
-        await updateBill(draft);
+        await updateInvoice(draft);
       }
       closeModal();
       await reload();
@@ -120,85 +119,60 @@ const BillPage = () => {
     }
   };
 
-  const onDelete = async (bill: Bill) => {
-    if (!confirm(`Delete bill #${bill.billId}?`)) return;
+  const onDelete = async (invoice: Invoice) => {
+    if (!confirm(`Delete invoice #${invoice.invoiceId}?`)) return;
     try {
-      await deleteBill(bill.billId);
+      await deleteInvoice(invoice.invoiceId);
       await reload();
     } catch {
       alert("Delete failed");
     }
   };
 
-  const onPay = async (bill: Bill) => {
-    if (!confirm(`Pay $${bill.amount} to ${bill.vendorName}?`)) return;
-    try {
-      const result = await pay({
-        billId: bill.billId,
-        method: "card_test",
-        idempotencyKey: crypto.randomUUID(),
-      });
-      if (result.status === "succeeded") {
-        alert("Payment succeeded");
-      } else if (result.status === "failed") {
-        alert(`Payment failed: ${result.failureReason}`);
-      }
-      await reload();
-    } catch {
-      alert("Payment request failed");
-    }
-  };
-
-  const columns: Column<Bill>[] = [
-    { header: "Vendor", render: (bill) => bill.vendorName ?? bill.vendorId },
-    { header: "Amount", render: (bill) => bill.amount },
-    { header: "Due date", render: (bill) => bill.dueDate },
-    { header: "Status", render: (bill) => bill.status },
-    {
-      header: "Pay",
-      render: (bill) => bill.status === "paid"
-        ? <span>paid</span>
-        : <button onClick={() => onPay(bill)}>Pay</button>
-    },
+  const columns: Column<Invoice>[] = [
+    { header: "Customer", render: (invoice) => invoice.customerName ?? invoice.customerId },
+    { header: "Amount", render: (invoice) => invoice.amount },
+    { header: "Due date", render: (invoice) => invoice.dueDate },
+    { header: "Status", render: (invoice) => invoice.status },
   ];
 
   return (
     <section>
       <header style={{ display: "flex", justifyContent: "space-between", padding: 16 }}>
-        <h1 style={{ margin: 0 }}>Bills</h1>
-        <button onClick={openCreate}>+ Add bill</button>
+        <h1 style={{ margin: 0 }}>Invoices</h1>
+        <button onClick={openCreate}>+ Add invoice</button>
       </header>
 
       {loading && <p style={{ padding: 16 }}>Loading...</p>}
       {error && <p style={{ padding: 16, color: "red" }}>{error}</p>}
       {!loading && !error && (
         <DataTable
-          rows={bills}
+          rows={invoices}
           columns={columns}
-          rowKey={(bill) => bill.billId}
+          rowKey={(invoice) => invoice.invoiceId}
           onEdit={openEdit}
           onDelete={onDelete}
-          emptyMessage="No bills yet - add your first."
+          emptyMessage="No invoices yet - add your first."
         />
       )}
 
       <Modal
         open={editing !== null}
-        title={editing === "new" ? "Add bill" : "Edit bill"}
+        title={editing === "new" ? "Add invoice" : "Edit invoice"}
         onClose={closeModal}
       >
         <div>
-          <div>Vendor:</div>
+          <div>Customer:</div>
           <select
-            value={draft.vendorId}
-            onChange={(e) => setDraft({ ...draft, vendorId: Number(e.target.value) })}
-            disabled={vendorsLoading || vendors.length === 0}
+            value={draft.customerId}
+            onChange={(e) => setDraft({ ...draft, customerId: Number(e.target.value) })}
+            disabled={customersLoading || customers.length === 0}
             autoFocus
           >
-            {vendors.length === 0 && <option value={0}>No vendors available</option>}
-            {vendors.map((vendor) => (
-              <option key={vendor.vendorId} value={vendor.vendorId}>
-                {vendor.companyName}
+            {customers.length === 0 && <option value={0}>No customers available</option>}
+            {customers.map((customer) => (
+              <option key={customer.customerId} value={customer.customerId}>
+                {customer.companyName}
               </option>
             ))}
           </select>
@@ -235,7 +209,7 @@ const BillPage = () => {
           <button onClick={closeModal}>Cancel</button>
           <button
             onClick={onSave}
-            disabled={saving || vendorsLoading || draft.vendorId === 0 || draft.amount <= 0 || draft.dueDate.length === 0}
+            disabled={saving || customersLoading || draft.customerId === 0 || draft.amount <= 0 || draft.dueDate.length === 0}
           >
             {saving ? "Saving..." : "Save"}
           </button>
@@ -245,4 +219,4 @@ const BillPage = () => {
   );
 };
 
-export default BillPage;
+export default InvoicesPage;

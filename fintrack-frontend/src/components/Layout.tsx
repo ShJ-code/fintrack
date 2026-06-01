@@ -14,6 +14,8 @@ const Layout = () => {
         <NavLink to="/bills"     style={linkStyle}>Bills</NavLink>
         <NavLink to="/vendors"   style={linkStyle}>Vendors</NavLink>
         <NavLink to="/customers" style={linkStyle}>Customers</NavLink>
+        <NavLink to="/invoices"  style={linkStyle}>Invoices</NavLink>
+        <NavLink to="/payments"  style={linkStyle}>Payments</NavLink>
         <span style={{ marginLeft: "auto", marginRight: 16 }}>{state.user?.username}</span>
         <button onClick={logout}>Logout</button>
       </header>
