@@ -1,0 +1,39 @@
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpw
+      MYSQL_DATABASE: fintrack_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./db/init:/docker-entrypoint-initdb.d  # SQL files here run once on first boot
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-prootpw"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./fintrack-backend
+    environment:
+      DB_URL: jdbc:mysql://db:3306/fintrack_db
+      DB_USER: root
+      DB_PASSWORD: rootpw
+      JWT_SECRET: dev-only-secret-change-me-32-bytes-long-please
+      FRONTEND_ORIGIN: http://localhost:8080
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: on-failure
+
+  frontend:
+    build: ./fintrack-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:

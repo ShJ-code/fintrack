@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fintrack-config
+  namespace: fintrack
+data:
+  DB_URL: "jdbc:mysql://mysql:3306/fintrack_db"
+  DB_USER: "root"
+  FRONTEND_ORIGIN: "http://18.215.174.155"

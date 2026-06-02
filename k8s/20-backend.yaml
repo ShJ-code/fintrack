@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: fintrack
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: backend } }
+  template:
+    metadata: { labels: { app: backend } }
+    spec:
+      imagePullSecrets:
+        - name: ecr-registry
+      initContainers:
+        - name: db-init
+          image: mysql:8.0
+          env:
+            - { name: MYSQL_PWD, valueFrom: { secretKeyRef: { name: fintrack-secrets, key: DB_PASSWORD } } }
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              until mysqladmin ping -hmysql -uroot --silent; do
+                echo "waiting for mysql"
+                sleep 2
+              done
+              mysql -hmysql -uroot fintrack_db < /db-init/01-schema.sql
+              mysql -hmysql -uroot fintrack_db < /db-init/02-seed.sql
+          volumeMounts:
+            - name: db-init-sql
+              mountPath: /db-init
+      containers:
+        - name: backend
+          image: 706504242471.dkr.ecr.us-east-1.amazonaws.com/fintrack-backend:0.1.0
+          ports: [{ containerPort: 8080 }]
+          env:
+            - { name: DB_URL,   valueFrom: { configMapKeyRef: { name: fintrack-config, key: DB_URL } } }
+            - { name: DB_USER,  valueFrom: { configMapKeyRef: { name: fintrack-config, key: DB_USER } } }
+            - { name: DB_PASSWORD, valueFrom: { secretKeyRef: { name: fintrack-secrets, key: DB_PASSWORD } } }
+            - { name: JWT_SECRET,  valueFrom: { secretKeyRef: { name: fintrack-secrets, key: JWT_SECRET } } }
+            - { name: FRONTEND_ORIGIN, valueFrom: { configMapKeyRef: { name: fintrack-config, key: FRONTEND_ORIGIN } } }
+          readinessProbe:
+            httpGet: { path: /health, port: 8080 }
+            initialDelaySeconds: 20
+          livenessProbe:
+            httpGet: { path: /health, port: 8080 }
+            initialDelaySeconds: 60
+      volumes:
+        - name: db-init-sql
+          configMap:
+            name: db-init-sql
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: fintrack
+spec:
+  selector: { app: backend }
+  ports: [{ port: 8080, targetPort: 8080 }]

@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: fintrack
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: frontend } }
+  template:
+    metadata: { labels: { app: frontend } }
+    spec:
+      imagePullSecrets:
+        - name: ecr-registry
+      containers:
+        - name: frontend
+          image: 706504242471.dkr.ecr.us-east-1.amazonaws.com/fintrack-frontend:0.1.0
+          ports: [{ containerPort: 80 }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: fintrack
+spec:
+  selector: { app: frontend }
+  ports: [{ port: 80, targetPort: 80 }]
